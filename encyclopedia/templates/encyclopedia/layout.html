@@ -12,16 +12,17 @@
         <div class="row">
             <div class="sidebar col-lg-2 col-md-3">
                 <h2>Wiki</h2>
-                <form>
-                    <input class="search" type="text" name="q" placeholder="Search Encyclopedia">
+                <form action="{% url 'search' %}" method="POST">
+                    {% csrf_token %}
+                    {{ search_form }}
                 </form>
-                <div>
+                <div class="ml-1">
                     <a href="{% url 'index' %}">Home</a>
                 </div>
-                <div>
+                <div class="ml-1">
                     Create New Page
                 </div>
-                <div>
+                <div class="ml-1">
                     Random Page
                 </div>
                 {% block nav %}
