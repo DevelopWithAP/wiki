@@ -1,11 +1,8 @@
-from logging import info
-from re import A
-from typing import ContextManager
-from encyclopedia.forms import Search
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from markdown2 import markdown
 from django import forms
+from django.contrib import messages
 from . import util
 
 """ Forms section """
@@ -16,6 +13,17 @@ class Search(forms.Form):
         "placeholder": "Search Here"
     }))
 
+class Create(forms.Form):
+    """ Create form """
+    title = forms.CharField(label="", widget=forms.TextInput(attrs={
+        "class": "form-control",
+        "placeholder": "New Entry Title",
+    }))
+    content = forms.CharField(label = "", widget=forms.Textarea(attrs={
+        "class": "form-control mt-2",
+        "placeholder": "Content",
+        "rows": 4,
+    }))
 
 def index(request):
     return render(request, "encyclopedia/index.html", {
@@ -60,5 +68,45 @@ def search(request):
                 "entries": entries,
                 "search_form": Search()
             })    
+
+def create(request):
+    """ Allow users to create a new entry """
+    entries = [entry.lower()for entry in util.list_entries()]
+    print(entries)
+    if request.method == "POST":
+        form = Create(request.POST)
+        if form.is_valid():
+            new_title = form.cleaned_data["title"]
+            new_content = form.cleaned_data["content"]
+            util.save_entry(new_title, new_content)
+            new_entry = util.get_entry(new_title)
+            if new_title.lower() in entries:
+                messages.warning(request, "Entry already exists")
+                return render(request, "encyclopedia/create.html", {
+                    "search_form": Search(),
+                    "create_form": Create(request.POST)
+                })
+            else:
+                return redirect("wiki", title=new_title)
+                # context={
+                #     "title": new_title,
+                #     "entry": markdown(util.get_entry(new_title)),
+                #     "search_form": Search(),
+                #     "create_form": Create()
+                # }
+                # return render(request, "encyclopedia/wiki.html")
+    else:
+        context = {
+            "search_form": Search(),
+            "create_form": Create()
+        }
+        return render(request, "encyclopedia/create.html", context)
+        
+        
+    
+        
+    
+                
+
 
 
