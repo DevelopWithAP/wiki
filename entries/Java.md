@@ -1,2 +1,2 @@
-# Java
-Java is a high-level, statically-typed, all-purpose compiled language
+#Java
+Java is an all-purpose, statically-typed programming language that supports type safety and OOP

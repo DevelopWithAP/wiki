@@ -25,6 +25,19 @@ class Create(forms.Form):
         "rows": 4,
     }))
 
+class Edit(forms.Form):
+    """ Edit form """
+    updated_title = forms.CharField(label="", widget=forms.TextInput(attrs={
+        "class": "form-control",
+        "placeholder": "Update Title"
+    }))
+    updated_content = forms.CharField(label="", widget=forms.Textarea(attrs={
+        "class": "form-control mt-2",
+        "placeholder": "Update Content",
+        "rows": 4
+    }))
+""" End of forms section """
+
 def index(request):
     return render(request, "encyclopedia/index.html", {
         "entries": util.list_entries(),
@@ -73,34 +86,43 @@ def create(request):
     """ Allow users to create a new entry """
     entries = [entry.lower()for entry in util.list_entries()]
     print(entries)
+    context = {
+            "search_form": Search(),
+            "create_form": Create()
+        }
+    print(entries)
     if request.method == "POST":
         form = Create(request.POST)
         if form.is_valid():
             new_title = form.cleaned_data["title"]
             new_content = form.cleaned_data["content"]
-            util.save_entry(new_title, new_content)
-            new_entry = util.get_entry(new_title)
-            if new_title.lower() in entries:
-                messages.warning(request, "Entry already exists")
-                return render(request, "encyclopedia/create.html", {
-                    "search_form": Search(),
-                    "create_form": Create(request.POST)
+            if not new_title.lower() in entries:
+                util.save_entry(new_title, new_content)
+                new_entry = markdown(util.get_entry(new_title))
+                return render(request, "encyclopedia/entry.html", {
+                    "title": new_title.capitalize(),
+                    "entry": markdown(new_entry),
+                    "search_form": Search()
                 })
             else:
-                return redirect("wiki", title=new_title)
-                # context={
-                #     "title": new_title,
-                #     "entry": markdown(util.get_entry(new_title)),
-                #     "search_form": Search(),
-                #     "create_form": Create()
-                # }
-                # return render(request, "encyclopedia/wiki.html")
+                messages.warning(request, "Entry already exists.")
+                return redirect("create")
+        else:
+            return render(request, "encyclopedia/create",context)
+
+    return render(request, "encyclopedia/create.html", context)
+        
+def edit(request, title):
+    """ Allow users to edit an entry """
+    entry = util.get_entry(title)
+    if request.method == "POST":
+        pass
     else:
-        context = {
+        print(request.GET)
+        return render(request, "encyclopedia/edit.html",{
             "search_form": Search(),
-            "create_form": Create()
-        }
-        return render(request, "encyclopedia/create.html", context)
+            "edit_form": Edit(request.GET)
+        })
         
         
     
