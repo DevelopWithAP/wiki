@@ -1,9 +1,9 @@
-from django.shortcuts import redirect, render
-from django.urls import reverse
+from django.shortcuts import render
 from markdown2 import markdown
 from django import forms
 from django.contrib import messages
 from . import util
+import random
 
 """ Forms section """
 class Search(forms.Form):
@@ -36,6 +36,7 @@ class Edit(forms.Form):
         "placeholder": "Update Content",
         "rows": 4
     }))
+
 """ End of forms section """
 
 def index(request):
@@ -47,7 +48,9 @@ def index(request):
 def wiki(request, title):
     entry = util.get_entry(title)
     if entry is None:
-        return render(request, "encyclopedia/file_not_found.html")
+        return render(request, "encyclopedia/file_not_found.html",{
+            "search_form": Search()
+        })
     else:
         context = {
             "title": title.capitalize(),
@@ -73,7 +76,7 @@ def search(request):
             context={
                 "query": query_string,
                 "result": result,
-                "search_form": Search()
+                "search_form": Search(),
             }
             return render(request, "encyclopedia/search_results.html", context)
         else:
@@ -84,13 +87,11 @@ def search(request):
 
 def create(request):
     """ Allow users to create a new entry """
-    entries = [entry.lower()for entry in util.list_entries()]
-    print(entries)
+    entries = [entry.lower() for entry in util.list_entries()]
     context = {
             "search_form": Search(),
             "create_form": Create()
         }
-    print(entries)
     if request.method == "POST":
         form = Create(request.POST)
         if form.is_valid():
@@ -106,23 +107,67 @@ def create(request):
                 })
             else:
                 messages.warning(request, "Entry already exists.")
-                return redirect("create")
+                return render(request, "encyclopedia/create.html", {
+                    "search_form": Search(),
+                    "create_form": Create(request.POST)
+                })
         else:
             return render(request, "encyclopedia/create",context)
-
     return render(request, "encyclopedia/create.html", context)
         
 def edit(request, title):
     """ Allow users to edit an entry """
+    title = title
     entry = util.get_entry(title)
-    if request.method == "POST":
-        pass
-    else:
-        print(request.GET)
-        return render(request, "encyclopedia/edit.html",{
+    """
+    Since we're not interacting with a database, the update_context dictionary
+    will aid in mimicing the action of fetching the entry data and passing its individual fields
+    as keys to the dictionary
+    """
+    update_context = {
+        "updated_title": title,
+        "updated_content": entry
+    }
+    if request.method == "GET":
+        return render(request, "encyclopedia/edit.html", {
+            "title": title,
             "search_form": Search(),
-            "edit_form": Edit(request.GET)
+            "edit_form": Edit(update_context)
         })
+    elif request.method == "POST":
+        form = Edit(request.POST)
+        if form.is_valid():
+            updated_title = form.cleaned_data["updated_title"]
+            updated_content = form.cleaned_data["updated_content"]
+            util.save_entry(updated_title, updated_content)
+            updated_entry = util.get_entry(updated_title)
+            return render(request, "encyclopedia/entry.html",{
+                "title": updated_title,
+                "entry": markdown(updated_entry),
+                "search_form": Search()
+            })
+        else:
+            return render(request, "encyclopedia/edit.html", {
+                "title": title,
+                "search_form": Search(),
+                "edit_form": Edit(update_context)
+            })
+
+def generate_random(request):
+    """ Allow users to access an random entry """
+    entries = util.list_entries()
+    random.shuffle(entries)
+    title = entries[0]
+    return render(request, "encyclopedia/entry.html", {
+        "title": title,
+        "entry": markdown(util.get_entry(title)),
+        "search_form": Search()
+    })
+
+    
+    
+
+
         
         
     

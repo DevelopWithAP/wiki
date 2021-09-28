@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block body %}
+<div class="container">
     <h1>All Pages</h1>
 
     <ul>
@@ -12,5 +13,6 @@
             <li><a href="{% url 'wiki' entry %}">{{ entry }}</a></li>
         {% endfor %}
     </ul>
+</div>
 
 {% endblock %}

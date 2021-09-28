@@ -1,11 +1,13 @@
 {% extends "encyclopedia/layout.html" %}
 
 {% block title %} 
-    {{ query }}
+   Search results for '{{ query }}'
 {% endblock %}
 
 {% block body %}
-    <div>
+    <div class="container">
+        <h1>Your search for '{{ query }}' returned the following results</h1>
+        <hr>
         {{result | safe}}
     </div>
 {% endblock %}
