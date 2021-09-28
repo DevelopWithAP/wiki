@@ -1,2 +1,2 @@
 # Bash
-Bash is a command-line scripting language used to automate tasks. It is also a full-fledged programming language that supports many high-level features.
+Bash is a command-line scripting language used to automate tasks. It is also a full-fledged programming language that supports many high-level features such as control-flow statements and functions. It is available by default in most Unix-based platforms.

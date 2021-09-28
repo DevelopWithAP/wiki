@@ -74,11 +74,13 @@ def search(request):
             else:
                 result = markdown(entry)
             context={
-                "query": query_string,
-                "result": result,
+                "title": query_string.capitalize(),
+                "entry": result,
                 "search_form": Search(),
+                "edit_form": Edit()
             }
-            return render(request, "encyclopedia/search_results.html", context)
+            
+            return render(request, "encyclopedia/entry.html", context)
         else:
             return render(request, "encyclopedia/index.html", {
                 "entries": entries,

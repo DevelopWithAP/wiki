@@ -3,7 +3,7 @@
 {% block title %} {{ title }} {% endblock %}
 
 {% block body %}
-    <div>
+    <div class="container">
         {{ entry|safe }}
         <a href="{% url 'edit' title %}" class="btn btn-primary">Edit</a>
     </div>
