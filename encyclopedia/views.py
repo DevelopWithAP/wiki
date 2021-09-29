@@ -61,26 +61,25 @@ def wiki(request, title):
 
 def search(request):
     entries = [entry.lower() for entry in util.list_entries()]
+    matches = []
     if request.method == "POST":
         form = Search(request.POST)
         if form.is_valid():
             query_string = form.cleaned_data["title"]
-            entry = util.get_entry(query_string)
-            #  if the search query is in the list of entries, it is a valid entry.
-            if query_string.lower() not in entries:
-                for entry in entries:
-                    if query_string in entry:
-                        result = markdown(util.get_entry(entry))
-            else:
-                result = markdown(entry)
-            context={
-                "title": query_string.capitalize(),
-                "entry": result,
+            if query_string.lower() in entries:
+                entry = util.get_entry(query_string)
+                return render(request, "encyclopedia/entry.html", {
+                    "search_form": Search(),
+                    "title": query_string.capitalize(),
+                    "entry": markdown(entry),
+                })
+            elif query_string.lower() not in entries:
+                matches = [ entry for entry in entries if query_string in entry ]
+            return render(request, "encyclopedia/results.html", {
                 "search_form": Search(),
-                "edit_form": Edit()
-            }
-            
-            return render(request, "encyclopedia/entry.html", context)
+                "matches": matches,
+                "title": query_string
+            })
         else:
             return render(request, "encyclopedia/index.html", {
                 "entries": entries,
